@@ -3,6 +3,7 @@ import cv2
 from skimage.feature import hog
 from skimage.feature import local_binary_pattern
 import numpy as np
+from sklearn.svm import SVC
 
 
 class image:
@@ -55,7 +56,9 @@ class svm:
             self.testLabel,
             self.labels,
             self.test,
-        ) = ([], [], [], [], [], set())
+            self.bestC,
+            self.bestScore,
+        ) = ([], [], [], [], [], set(), None, None)
 
     def divide(self):
         while len(self.test) < (4000 / 100 * 30):
@@ -84,3 +87,15 @@ class svm:
             img.cropImg()
             self.testVec.append(np.append(img.hogFeature(), img.lbpFeature))
             self.testLabel.append(self.labels[item - 1])
+
+    def findBestC(self):
+        for C in np.arange(0.05, 2.05, 0.05):
+            model = SVC(kernel="rbf", gamma=0.05, C=C)
+            model.fit(self.trainVec, self.trainLabel)
+            score = model.score(self.testVec, self.testLabel)
+            if self.bestScore is None:
+                self.bestScore = score
+                self.bestC = C
+            elif score > self.bestScore:
+                self.bestScore = score
+                self.bestC = C
