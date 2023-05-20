@@ -35,6 +35,10 @@ class image:
 
 
 class svm:
+    def __init__(self):
+        self.trainVec, self.trainLabel = [], []
+        self.testVec, self.testLabel = [], []
+
     def divide(self):
         self.test = set()
 
@@ -49,3 +53,12 @@ class svm:
         with open("labels.txt") as FILE:
             for line in FILE:  
                 self.labels.append(int(line[0]))
+    
+    def generateTrain(self):
+        for i in range(1, 4001):
+            if i not in self.test:
+                imgPath = './files/file' + ('%04d' % i) + '.jpg'
+                img = image(imgPath)
+                img.cropImg()
+                self.trainVec.append(np.append(img.hogFeature() , img.lbpFeature))
+                self.trainLabel.append(self.labels[i - 1])
