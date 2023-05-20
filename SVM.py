@@ -19,9 +19,19 @@ class image:
         self.img = imgRgb
     
     def hogFeature(self):
-        resizedImg = cv2.resize(self.img, (180, 180))
-        fd, hog_image = hog(resizedImg, orientations=30, pixels_per_cell=(30, 30), cells_per_block=(1, 1), visualize=True, channel_axis=-1)
+        self.img = cv2.resize(self.img, (180, 180))
+        fd, hogImg = hog(self.img, orientations=30, pixels_per_cell=(30, 30), cells_per_block=(1, 1), visualize=True, channel_axis=-1)
         return fd
+    
+    def lbpFeature(self):
+        grayImg = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+        lbp = local_binary_pattern(grayImg, 24, 3, method='uniform')
+        lbp = lbp.ravel()
+        feature = np.zeros(26)
+        for j in lbp:
+            feature[int(j)] += 1
+        feature /= np.linalg.norm(feature, ord=1)
+        return feature
 
 
 class svm:
