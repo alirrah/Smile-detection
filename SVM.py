@@ -4,6 +4,7 @@ from skimage.feature import hog
 from skimage.feature import local_binary_pattern
 import numpy as np
 from sklearn.svm import SVC
+import joblib
 
 
 class image:
@@ -99,3 +100,10 @@ class svm:
             elif score > self.bestScore:
                 self.bestScore = score
                 self.bestC = C
+
+        self.model = SVC(kernel="rbf", gamma=0.05, C=self.bestC)
+        self.model.fit(self.trainVec, self.trainLabel)
+
+    def save(self):
+        filename = "myModel.joblib"
+        joblib.dump(self.model, filename)
