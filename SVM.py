@@ -40,12 +40,10 @@ class image:
     def lbpFeature(self):
         grayImg = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
         lbp = local_binary_pattern(grayImg, 24, 3, method="uniform")
-        lbp = lbp.ravel()
-        feature = np.zeros(26)
-        for j in lbp:
-            feature[int(j)] += 1
-        feature /= np.linalg.norm(feature, ord=1)
-        return feature
+        (hist, _) = np.histogram(lbp.ravel(), bins=np.arange(24), range=(0, 26))
+        hist = hist.astype("float")
+        hist /= (hist.sum() + 1e-7)
+        return hist
 
 
 class svm:
@@ -57,9 +55,7 @@ class svm:
             self.testLabel,
             self.labels,
             self.test,
-            self.bestC,
-            self.bestScore,
-        ) = ([], [], [], [], [], set(), None, None)
+        ) = ([], [], [], [], [], set())
 
     def divide(self):
         while len(self.test) < (4000 / 100 * 30):
@@ -70,7 +66,7 @@ class svm:
     def readLabels(self):
         with open("labels.txt") as FILE:
             for line in FILE:
-                self.labels.append(int(line[0]))
+                self.labels.append(line[0])
 
     def generateTrain(self):
         for i in range(1, 4001):
@@ -78,7 +74,7 @@ class svm:
                 imgPath = "./files/file" + ("%04d" % i) + ".jpg"
                 img = image(imgPath)
                 img.cropImg()
-                self.trainVec.append(np.append(img.hogFeature(), img.lbpFeature))
+                self.trainVec.append(np.append(img.hogFeature(), img.lbpFeature()))
                 self.trainLabel.append(self.labels[i - 1])
 
     def generateTest(self):
@@ -86,24 +82,34 @@ class svm:
             imgPath = "./files/file" + ("%04d" % item) + ".jpg"
             img = image(imgPath)
             img.cropImg()
-            self.testVec.append(np.append(img.hogFeature(), img.lbpFeature))
+            self.testVec.append(np.append(img.hogFeature(), img.lbpFeature()))
             self.testLabel.append(self.labels[item - 1])
 
     def findBestC(self):
+        bestScore, bestC = None, None
         for C in np.arange(0.05, 2.05, 0.05):
-            model = SVC(kernel="rbf", gamma=0.05, C=C)
+            model = SVC(kernel="rbf", C=C)
             model.fit(self.trainVec, self.trainLabel)
             score = model.score(self.testVec, self.testLabel)
-            if self.bestScore is None:
-                self.bestScore = score
-                self.bestC = C
-            elif score > self.bestScore:
-                self.bestScore = score
-                self.bestC = C
-
-        self.model = SVC(kernel="rbf", gamma=0.05, C=self.bestC)
+            if bestScore is None:
+                bestScore = score
+                bestC = C
+            elif score > bestScore:
+                bestScore = score
+                bestC = C
+        self.model = SVC(kernel="rbf", C=bestC)
         self.model.fit(self.trainVec, self.trainLabel)
 
     def save(self):
         filename = "myModel.joblib"
         joblib.dump(self.model, filename)
+
+
+if __name__ == "__main__":
+    SVM = svm()
+    SVM.divide()
+    SVM.readLabels()
+    SVM.generateTrain()
+    SVM.generateTest()
+    SVM.findBestC()
+    SVM.save()
