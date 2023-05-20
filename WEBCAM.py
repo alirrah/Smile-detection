@@ -43,3 +43,12 @@ class image:
         hist = hist.astype("float")
         hist /= hist.sum() + 1e-7
         return hist
+
+
+if __name__ == "__main__":
+    vid = cv2.VideoCapture(0)
+
+    filename = "myModel.joblib"
+    loadedModel = joblib.load(filename)
+
+
