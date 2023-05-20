@@ -58,6 +58,18 @@ if __name__ == "__main__":
         x = []
         x.append(np.append(img.hogFeature(), img.lbpFeature()))
         y_predicted = loadedModel.predict(x)
+        frame = cv2.putText(
+            frame,
+            "Smile" if y_predicted == ["1"] else "No smile",
+            (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 255, 0) if y_predicted == ["1"] else (0, 0, 255),
+            2,
+        )
+        cv2.imshow("Webcam", frame)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
 
     vid.release()
     cv2.destroyAllWindows()
