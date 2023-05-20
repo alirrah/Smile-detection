@@ -51,4 +51,13 @@ if __name__ == "__main__":
     filename = "myModel.joblib"
     loadedModel = joblib.load(filename)
 
+    while True:
+        ret, frame = vid.read()
+        img = image(frame)
+        img.cropImg()
+        x = []
+        x.append(np.append(img.hogFeature(), img.lbpFeature()))
+        y_predicted = loadedModel.predict(x)
 
+    vid.release()
+    cv2.destroyAllWindows()
